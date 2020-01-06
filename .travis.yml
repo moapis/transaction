@@ -1,0 +1,18 @@
+dist: bionic
+
+language: go
+go:
+  - "1.13"
+  - master
+
+services:
+  - postgresql
+
+install:
+  - go get -v ./...
+
+script:
+  - go test -race -coverprofile=codecov.out -covermode=atomic
+
+after_script:
+  - bash <(curl -s https://codecov.io/bash) -f codecov.out
