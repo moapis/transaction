@@ -44,7 +44,7 @@ func attemptDial(ctx context.Context, entry *logrus.Entry, target string) (acc *
 
 // NewVerificator dials the target authentication gRPC server and keeps retrying untill the context expires.
 func NewVerificator(ctx context.Context, entry *logrus.Entry, target string, audiences ...string) (*Verificator, error) {
-	entry = log.WithField("target", target)
+	entry = entry.WithField("target", target)
 	entry.Info("Start gRPC Dial")
 	acc, err := attemptDial(ctx, entry, target)
 	if err != nil {
