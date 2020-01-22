@@ -10,6 +10,14 @@ services:
 
 install:
   - go get -v ./...
+  - go get -v github.com/rubenv/sql-migrate/sql-migrate
+  - go get -v github.com/moapis/authenticator/cmd/server
+  - git clone --depth=1 https://github.com/moapis/authenticator.git
+
+before_script:
+  - psql -c 'create database authenticator;' -U postgres
+  - (cd authenticator/migrations && sql-migrate up development)
+  - (cd authenticator/cmd/server && server -config config/development.json &)
 
 script:
   - go test -race -coverprofile=codecov.out -covermode=atomic

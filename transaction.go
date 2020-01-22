@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/moapis/multidb"
+	"github.com/pascaldekloe/jwt"
 	"github.com/sirupsen/logrus"
 	"github.com/volatiletech/sqlboiler/boil"
 	"google.golang.org/grpc/codes"
@@ -24,6 +25,7 @@ type Request struct {
 	Tx       boil.ContextTransactor
 	Log      *logrus.Entry
 	ReadOnly bool
+	Claims   *jwt.Claims
 
 	cancel context.CancelFunc
 }
@@ -59,6 +61,10 @@ const (
 	ErrNotEnoughTime = "Not enough time in context"
 	// ErrDB is returned as a gRPC error message.
 	ErrDB = "Database error"
+	// ErrAuth is returned as a gRPC error message.
+	ErrAuth = "Authentication server error"
+	// ErrGroup is returned as a gRPC error message.
+	ErrGroup = "User not in required group"
 )
 
 // EnoughTime checks if the context is valid and has enough time available.
