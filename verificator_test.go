@@ -135,7 +135,7 @@ func TestVerificator_NewAuth(t *testing.T) {
 	ar, err := vfc.Client.AuthenticatePwUser(
 		context.Background(),
 		&auth.UserPassword{
-			User:     &auth.UserPassword_Email{Email: "admin@localhost"},
+			Email:    "admin@localhost",
 			Password: "admin",
 		},
 	)
