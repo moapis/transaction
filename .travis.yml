@@ -15,7 +15,8 @@ install:
   - git clone --depth=1 https://github.com/moapis/authenticator.git
 
 before_script:
-  - psql -c 'create database authenticator;' -U postgres
+  - createuser -U postgres -s authenticator
+  - createdb -U authenticator authenticator
   - (cd authenticator/migrations && sql-migrate up development)
   - (cd authenticator/cmd/server && server -config config/development.json &)
 
