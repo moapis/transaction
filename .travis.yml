@@ -2,7 +2,7 @@ dist: bionic
 
 language: go
 go:
-  - "1.13"
+  - "1.14"
   - master
 
 services:
@@ -11,7 +11,7 @@ services:
 install:
   - go get -v ./...
   - go get -v github.com/rubenv/sql-migrate/sql-migrate
-  - go get -v github.com/moapis/authenticator/cmd/server@v0.2.2
+  - go get -v github.com/moapis/authenticator/cmd/server@v0.3.0
   - git clone --depth=1 https://github.com/moapis/authenticator.git
 
 before_script:
