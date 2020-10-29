@@ -6,6 +6,8 @@ package transaction
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"os"
 	"testing"
 	"time"
@@ -13,6 +15,8 @@ import (
 	"github.com/moapis/multidb"
 	"github.com/moapis/multidb/drivers/postgresql"
 	"github.com/sirupsen/logrus"
+
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -21,25 +25,16 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	mc := multidb.Config{
-		DBConf: postgresql.Config{
-			Nodes: []postgresql.Node{{
-				Host: "localhost",
-				Port: 5432,
-			}},
-			Params: postgresql.Params{
-				DBname:          "postgres",
-				User:            "postgres",
-				SSLmode:         "disable",
-				Connect_timeout: 5,
-			},
-		},
+	mdb = &multidb.MultiDB{
+		MasterFunc: multidb.IsMaster(postgresql.MasterQuery),
 	}
-	var err error
-	mdb, err = mc.Open()
+
+	db, err := sql.Open("postgres", "host=localhost dbname=postgres user=postgres ssl_mode=disable connect_timeout=5")
 	if err != nil {
 		log.WithError(err).Fatal("mdb Open")
 	}
+
+	mdb.Add("localhost", db)
 
 	code := m.Run()
 
@@ -48,6 +43,23 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(code)
+}
+
+func TestRequest_errCallback(t *testing.T) {
+	rt := &Request{
+		Log: logrus.NewEntry(log),
+	}
+
+	errs := []error{
+		nil,
+		sql.ErrNoRows, //ignoredCallbackErrs
+		new(multidb.NodeError),
+		errors.New("Spanac"),
+	}
+
+	for _, err := range errs {
+		rt.errCallback(err)
+	}
 }
 
 func TestNew(t *testing.T) {

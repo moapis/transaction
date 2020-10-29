@@ -30,6 +30,33 @@ type Request struct {
 	cancel context.CancelFunc
 }
 
+var ignoredCallbackErrs = []error{
+	context.Canceled,
+	sql.ErrNoRows,
+	sql.ErrTxDone,
+}
+
+func (rt *Request) errCallback(err error) {
+	if err == nil {
+		return
+	}
+
+	for _, target := range ignoredCallbackErrs {
+		if errors.Is(err, target) {
+			rt.Log.WithError(err).Debug("Ignored Node ErrCallback")
+			return
+		}
+	}
+
+	ne := new(multidb.NodeError)
+	if errors.As(err, &ne) {
+		rt.Log.WithField("name", ne.Name()).WithError(ne.Unwrap()).Warn("Node ErrCallback")
+	} else {
+		rt.Log.WithError(err).Error("Unknown Node ErrCallback")
+	}
+
+}
+
 // New Request opens a transaction on mdb.
 // If the transaction is readonly, routines amount of Nodes will be requested.
 func New(ctx context.Context, log *logrus.Entry, mdb *multidb.MultiDB, readOnly bool, routines ...int) (*Request, error) {
@@ -43,7 +70,7 @@ func New(ctx context.Context, log *logrus.Entry, mdb *multidb.MultiDB, readOnly 
 		if len(routines) > 0 {
 			max = routines[0]
 		}
-		rt.Tx, err = mdb.MultiTx(ctx, &sql.TxOptions{ReadOnly: readOnly}, max)
+		rt.Tx, err = mdb.MultiTx(ctx, &sql.TxOptions{ReadOnly: readOnly}, max, rt.errCallback)
 	} else {
 		rt.Tx, err = mdb.MasterTx(ctx, nil)
 	}
