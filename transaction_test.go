@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 		MasterFunc: multidb.IsMaster(postgresql.MasterQuery),
 	}
 
-	db, err := sql.Open("postgres", "host=localhost dbname=postgres user=postgres ssl_mode=disable connect_timeout=5")
+	db, err := sql.Open("postgres", "host=localhost dbname=postgres user=postgres sslmode=disable connect_timeout=5")
 	if err != nil {
 		log.WithError(err).Fatal("mdb Open")
 	}
